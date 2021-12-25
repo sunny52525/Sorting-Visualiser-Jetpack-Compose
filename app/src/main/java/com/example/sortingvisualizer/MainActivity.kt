@@ -71,14 +71,16 @@ class MainActivity : ComponentActivity() {
                             BottomAppBar(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(132.dp)
+                                    .height(202.dp)
 
                             ) {
-                                Row(
-                                    Modifier.padding(vertical = 20.dp)
+                                Column(
+                                    Modifier
+                                        .padding(vertical = 20.dp)
                                 ) {
                                     LazyRow(
-                                        Modifier.fillMaxWidth(0.7f),
+                                        Modifier
+                                            .fillMaxWidth(),
                                         horizontalArrangement = Arrangement.spacedBy(20.dp)
 
                                     ) {
@@ -94,11 +96,13 @@ class MainActivity : ComponentActivity() {
                                     }
 
 
-                                    Row(Modifier.fillMaxWidth()) {
+                                    Row(
+                                        Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceAround
+                                    ) {
 
 
                                         FancyButton(
-                                            modifier = Modifier.fillMaxWidth(0.5f),
                                             text = "Sort"
                                         ) {
 
@@ -273,10 +277,10 @@ fun FancyButton(
         backgroundColor = color.copy(alpha = 0.5f),
         modifier = modifier
             .width(150.dp)
-            .height(300.dp)
+
     ) {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier,
             contentAlignment = Alignment.Center
         ) {
             Text(
