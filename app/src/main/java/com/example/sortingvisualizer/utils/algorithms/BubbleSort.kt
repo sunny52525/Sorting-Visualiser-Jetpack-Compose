@@ -139,6 +139,8 @@ suspend fun mergeSort(
     mergeSort(list, temp, leftStart, mid, onUpdateItems)
     mergeSort(list, temp, mid + 1, rightEnd, onUpdateItems)
     merge(list, temp, leftStart, rightEnd, onUpdateItems)
+    delay(10)
+    onUpdateItems(list)
 }
 
 suspend fun merge(

@@ -30,11 +30,14 @@ import com.example.sortingvisualizer.utils.generateRandomArray
 import com.example.sortingvisualizer.utils.getScreenHeight
 import com.example.sortingvisualizer.utils.getScreenWidth
 import com.example.sortingvisualizer.utils.sortingAlgorithms
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    private lateinit var job: Job
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             SortingVisualizerTheme(darkTheme = false) {
                 val width = getScreenWidth()
@@ -89,26 +92,33 @@ class MainActivity : ComponentActivity() {
                                     }
 
 
-                                    Column(Modifier.fillMaxWidth()) {
+                                    Row(Modifier.fillMaxWidth()) {
+
+
                                         FancyButton(
-                                            modifier = Modifier.fillMaxWidth(),
+                                            modifier = Modifier.fillMaxWidth(0.5f),
                                             text = "Sort"
                                         ) {
 
-                                            when (currentSortingAlgorithm) {
-                                                SortingAlgorithms.BUBBLE -> scope.launch {
-                                                    bubbleSort(array, onFinished = {
 
-                                                    }, onUpdateItems = onArrayUpdated)
+                                            when (currentSortingAlgorithm) {
+                                                SortingAlgorithms.BUBBLE -> {
+                                                    job = scope.launch {
+                                                        bubbleSort(array, onFinished = {
+
+                                                        }, onUpdateItems = onArrayUpdated)
+                                                    }
                                                 }
-                                                SortingAlgorithms.INSERTION -> scope.launch {
-                                                    insertionSort(array, onArrayUpdated)
+                                                SortingAlgorithms.INSERTION -> {
+                                                    job = scope.launch {
+                                                        insertionSort(array, onArrayUpdated)
+                                                    }
                                                 }
                                                 SortingAlgorithms.MERGE -> {
                                                     val list = array
                                                     val temp = mutableListOf<Int>()
                                                     array.forEach { temp.add(it) }
-                                                    scope.launch {
+                                                    job = scope.launch {
                                                         mergeSort(
                                                             list,
                                                             temp,
@@ -118,19 +128,28 @@ class MainActivity : ComponentActivity() {
                                                         )
                                                     }
                                                 }
-                                                SortingAlgorithms.QUICK -> scope.launch {
-                                                    com.example.sortingvisualizer.utils.algorithms.quickSort(
-                                                        array,
-                                                        0,
-                                                        array.size - 1,
-                                                        onArrayUpdated
-                                                    )
+                                                SortingAlgorithms.QUICK -> {
+                                                    job = scope.launch {
+                                                        com.example.sortingvisualizer.utils.algorithms.quickSort(
+                                                            array,
+                                                            0,
+                                                            array.size - 1,
+                                                            onArrayUpdated
+                                                        )
+                                                    }
                                                 }
-                                                SortingAlgorithms.SELECTION -> scope.launch {
-                                                    selectionSort(array, onArrayUpdated)
+                                                SortingAlgorithms.SELECTION -> {
+                                                    job = scope.launch {
+                                                        selectionSort(array, onArrayUpdated)
+                                                    }
                                                 }
                                             }
 
+                                        }
+
+
+                                        FancyButton(text = "Stop", color = Color.Red) {
+                                            job.cancel()
                                         }
                                     }
                                 }
@@ -240,13 +259,15 @@ fun SortingBar(
 @Composable
 fun FancyButton(
     modifier: Modifier = Modifier,
-    text: String = "Bubble", onClick: () -> Unit = {}
-) {
+    color: Color = Color.Green,
+    text: String = "Bubble", onClick: () -> Unit = {},
+
+    ) {
 
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(10.dp),
-        backgroundColor = Color.Green.copy(alpha = 0.5f),
+        backgroundColor = color.copy(alpha = 0.5f),
         modifier = modifier
             .width(150.dp)
             .height(300.dp)
