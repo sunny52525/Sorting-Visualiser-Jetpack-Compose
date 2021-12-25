@@ -50,6 +50,8 @@ class MainActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
 
                 val onSortingChanged: (SortingAlgorithms) -> Unit = {
+                    if (this::job.isInitialized)
+                        job.cancel()
                     currentSortingAlgorithm = it
                     array = arrayListOf()
                     array = generateRandomArray(width, height)
@@ -149,7 +151,8 @@ class MainActivity : ComponentActivity() {
 
 
                                         FancyButton(text = "Stop", color = Color.Red) {
-                                            job.cancel()
+                                            if (this@MainActivity::job.isInitialized)
+                                                job.cancel()
                                         }
                                     }
                                 }
