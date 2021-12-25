@@ -6,23 +6,30 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.sortingvisualizer.models.SortingAlgorithms
 import com.example.sortingvisualizer.ui.theme.SortingVisualizerTheme
-import com.example.sortingvisualizer.utils.Utils.generateRandomArray
 import com.example.sortingvisualizer.utils.algorithms.bubbleSort
-import kotlinx.coroutines.delay
+import com.example.sortingvisualizer.utils.algorithms.insertionSort
+import com.example.sortingvisualizer.utils.algorithms.mergeSort
+import com.example.sortingvisualizer.utils.algorithms.selectionSort
+import com.example.sortingvisualizer.utils.generateRandomArray
+import com.example.sortingvisualizer.utils.getScreenHeight
+import com.example.sortingvisualizer.utils.getScreenWidth
+import com.example.sortingvisualizer.utils.sortingAlgorithms
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -30,12 +37,116 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             SortingVisualizerTheme(darkTheme = false) {
-                // A surface container using the 'background' color from the theme
+                val width = getScreenWidth()
+                val height = getScreenHeight() / 3 * 2
+                var array by remember {
+                    mutableStateOf(generateRandomArray(width, height))
+                }
+
+                var currentSortingAlgorithm by remember { mutableStateOf(SortingAlgorithms.BUBBLE) }
+                val scope = rememberCoroutineScope()
+
+                val onSortingChanged: (SortingAlgorithms) -> Unit = {
+                    currentSortingAlgorithm = it
+                    array = arrayListOf()
+                    array = generateRandomArray(width, height)
+                }
+
+
+                val onArrayUpdated: (MutableList<Int>) -> Unit = {
+                    array = arrayListOf()
+                    array = it
+                }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    Greeting("Android")
+                    Scaffold(
+                        bottomBar = {
+                            BottomAppBar(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(132.dp)
+
+                            ) {
+                                Row(
+                                    Modifier.padding(vertical = 20.dp)
+                                ) {
+                                    LazyRow(
+                                        Modifier.fillMaxWidth(0.7f),
+                                        horizontalArrangement = Arrangement.spacedBy(20.dp)
+
+                                    ) {
+
+                                        items(sortingAlgorithms, key = {
+                                            it.value
+                                        }) {
+                                            FancyButton(text = it.value) {
+                                                onSortingChanged(it)
+                                            }
+                                        }
+
+                                    }
+
+
+                                    Column(Modifier.fillMaxWidth()) {
+                                        FancyButton(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            text = "Sort"
+                                        ) {
+
+                                            when (currentSortingAlgorithm) {
+                                                SortingAlgorithms.BUBBLE -> scope.launch {
+                                                    bubbleSort(array, onFinished = {
+
+                                                    }, onUpdateItems = onArrayUpdated)
+                                                }
+                                                SortingAlgorithms.INSERTION -> scope.launch {
+                                                    insertionSort(array, onArrayUpdated)
+                                                }
+                                                SortingAlgorithms.MERGE -> {
+                                                    val list = array
+                                                    val temp = mutableListOf<Int>()
+                                                    array.forEach { temp.add(it) }
+                                                    scope.launch {
+                                                        mergeSort(
+                                                            list,
+                                                            temp,
+                                                            0,
+                                                            list.size - 1,
+                                                            onArrayUpdated
+                                                        )
+                                                    }
+                                                }
+                                                SortingAlgorithms.QUICK -> scope.launch {
+                                                    com.example.sortingvisualizer.utils.algorithms.quickSort(
+                                                        array,
+                                                        0,
+                                                        array.size - 1,
+                                                        onArrayUpdated
+                                                    )
+                                                }
+                                                SortingAlgorithms.SELECTION -> scope.launch {
+                                                    selectionSort(array, onArrayUpdated)
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ) {
+                        Column(modifier = Modifier.padding(it)) {
+                            SortingBar(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(1.dp, Color.Red), items = array
+                            )
+                        }
+                    }
+
+
                 }
             }
         }
@@ -43,15 +154,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String) {
+fun Greeting(array: MutableList<Int>, onArrayChange: (MutableList<Int>) -> Unit) {
 
-    var timer by remember {
-        mutableStateOf(0)
-    }
-
-    var array by remember {
-        mutableStateOf(generateRandomArray(1000, 1000))
-    }
 
     var isSorting by remember {
         mutableStateOf(false)
@@ -68,16 +172,13 @@ fun Greeting(name: String) {
         verticalArrangement = Arrangement.Center
     ) {
 
-        Text(text = "$timer", color = Color.White)
 
         Button(onClick = {
 
             if (!isSorting) {
-                if (timer != 0) {
-                    array = mutableListOf()
-                    array = generateRandomArray(1000, 1000)
-                }
-                timer = 0
+
+                onArrayChange(array)
+
             }
             isSorting = true
             scope.launch {
@@ -91,28 +192,14 @@ fun Greeting(name: String) {
                     isSorting = false
                 }) {
                     isSorting = it == array
-                    array = mutableListOf()
-                    array = it
+                    onArrayChange(it)
                 }
             }
 
-            scope.launch {
-                while (sorting) {
-                    timer++
-                    delay(1000)
-
-                }
-
-            }
         }) {
-            Text(text = "Hello $name!")
+            Text(text = "Sort")
         }
 
-        DrawingCanvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color.Red), items = array
-        )
 
     }
 
@@ -120,7 +207,7 @@ fun Greeting(name: String) {
 
 
 @Composable
-fun DrawingCanvas(
+fun SortingBar(
     modifier: Modifier,
     items: MutableList<Int>
 ) {
@@ -145,4 +232,36 @@ fun DrawingCanvas(
 
         }
     }
+}
+
+
+@OptIn(ExperimentalMaterialApi::class)
+@Preview
+@Composable
+fun FancyButton(
+    modifier: Modifier = Modifier,
+    text: String = "Bubble", onClick: () -> Unit = {}
+) {
+
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(10.dp),
+        backgroundColor = Color.Green.copy(alpha = 0.5f),
+        modifier = modifier
+            .width(150.dp)
+            .height(300.dp)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                style = TextStyle(fontSize = 20.sp),
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+            )
+        }
+    }
+
+
 }
