@@ -6,4 +6,5 @@ enum class SortingAlgorithms(val value:String) {
     MERGE("Merge Sort"),
     QUICK("Quick Sort"),
     SELECTION("Selection Sort"),
+    TWO_POINTER("Two Pointer Sort"),
 }

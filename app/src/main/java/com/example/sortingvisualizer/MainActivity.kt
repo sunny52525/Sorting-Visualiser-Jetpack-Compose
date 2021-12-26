@@ -8,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -22,14 +21,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sortingvisualizer.models.SortingAlgorithms
 import com.example.sortingvisualizer.ui.theme.SortingVisualizerTheme
-import com.example.sortingvisualizer.utils.algorithms.bubbleSort
-import com.example.sortingvisualizer.utils.algorithms.insertionSort
-import com.example.sortingvisualizer.utils.algorithms.mergeSort
-import com.example.sortingvisualizer.utils.algorithms.selectionSort
+import com.example.sortingvisualizer.utils.algorithms.*
 import com.example.sortingvisualizer.utils.generateRandomArray
 import com.example.sortingvisualizer.utils.getScreenHeight
 import com.example.sortingvisualizer.utils.getScreenWidth
-import com.example.sortingvisualizer.utils.sortingAlgorithms
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -84,14 +79,20 @@ class MainActivity : ComponentActivity() {
                                         horizontalArrangement = Arrangement.spacedBy(20.dp)
 
                                     ) {
-
-                                        items(sortingAlgorithms, key = {
-                                            it.value
-                                        }) {
-                                            FancyButton(text = it.value) {
-                                                onSortingChanged(it)
+                                        enumValues<SortingAlgorithms>().forEach {
+                                            item {
+                                                FancyButton(text = it.value) {
+                                                    onSortingChanged(it)
+                                                }
                                             }
                                         }
+//                                        items(sortingAlgorithms, key = {
+//                                            it.value
+//                                        }) {
+//                                            FancyButton(text = it.value) {
+//                                                onSortingChanged(it)
+//                                            }
+//                                        }
 
                                     }
 
@@ -147,6 +148,17 @@ class MainActivity : ComponentActivity() {
                                                 SortingAlgorithms.SELECTION -> {
                                                     job = scope.launch {
                                                         selectionSort(array, onArrayUpdated)
+                                                    }
+                                                }
+                                                SortingAlgorithms.TWO_POINTER -> {
+
+                                                    job = scope.launch {
+                                                        twoPointerQuickSort(
+                                                            array,
+                                                            0,
+                                                            array.size - 1,
+                                                            onArrayUpdated
+                                                        )
                                                     }
                                                 }
                                             }

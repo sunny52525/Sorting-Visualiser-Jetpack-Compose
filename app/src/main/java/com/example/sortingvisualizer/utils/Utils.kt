@@ -14,7 +14,7 @@ fun generateRandomArray(size: Int, max: Int): MutableList<Int> {
     return list
 }
 
-val sortingAlgorithms = arrayListOf(BUBBLE, INSERTION, MERGE, QUICK, SELECTION)
+val sortingAlgorithms = arrayListOf(BUBBLE, INSERTION, MERGE, QUICK, SELECTION, TWO_POINTER)
 
 @Composable
 fun getScreenWidth(): Int {

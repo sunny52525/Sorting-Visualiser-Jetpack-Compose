@@ -190,3 +190,61 @@ suspend fun merge(
 }
 
 
+
+
+suspend fun twoPointerQuickSort(
+    list: MutableList<Int>,
+    left: Int,
+    right: Int,
+    onUpdateItems: (MutableList<Int>) -> Unit
+) {
+    if (left >= right) {
+        return
+    }
+
+    val pivotValue = list[left]
+    val pivotIndex = twoPQSPartition(list, left, right, pivotValue, onUpdateItems)
+    twoPointerQuickSort(list, left, pivotIndex - 1, onUpdateItems)
+    twoPointerQuickSort(list, pivotIndex + 1, right, onUpdateItems)
+}
+
+suspend fun twoPQSPartition(
+    list: MutableList<Int>,
+    left: Int,
+    right: Int,
+    pivotValue: Int,
+    onUpdateItems: (MutableList<Int>) -> Unit
+): Int {
+    var leftI = left
+    var rightI = right
+
+    while (leftI < rightI) {
+        while (list[leftI] <= pivotValue && leftI < rightI) {
+            ++leftI
+        }
+
+        while (list[rightI] > pivotValue) {
+            --rightI
+        }
+
+        if (leftI < rightI) {
+            // swap list[leftI] and list[rightI]
+            val temp = list[leftI]
+            list[leftI] = list[rightI]
+            list[rightI] = temp
+        }
+
+        delay(2)
+        onUpdateItems(list)
+    }
+
+    // swap list[left] and list[rightI]
+    val temp = list[left]
+    list[left] = list[rightI]
+    list[rightI] = temp
+
+    onUpdateItems(list)
+
+    return rightI
+}
+
