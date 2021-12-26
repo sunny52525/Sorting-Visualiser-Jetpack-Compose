@@ -5,6 +5,7 @@ import kotlinx.coroutines.delay
 suspend fun bubbleSort(
     list: MutableList<Int>,
     onFinished:()->Unit,
+    comparing:(Int,Int)->Unit,
     onUpdateItems: (MutableList<Int>) -> Unit
 ) {
     val n = list.size
@@ -14,6 +15,7 @@ suspend fun bubbleSort(
         for (j in 0 until (n - i - 1)) {
             if (list[j] > list[j + 1]) {
                 // swap
+                comparing(j,j+1)
                 val t = list[j]
                 list[j] = list[j + 1]
                 list[j + 1] = t
@@ -21,7 +23,7 @@ suspend fun bubbleSort(
             }
         }
 
-        delay(10)
+        delay(100)
         onUpdateItems(list)
         if (!swapped) break
     }
@@ -33,18 +35,21 @@ suspend fun bubbleSort(
 suspend fun quickSort(
     list: MutableList<Int>,
     start: Int,
+
     end: Int,
+    comparing:(Int,Int)->Unit,
+
     onUpdateItems: (MutableList<Int>) -> Unit
 ) {
     if (start >= end) {
         return
     }
 
-    val pivotIndex = partitionQuick(list, start, end, onUpdateItems)
-    quickSort(list, start, pivotIndex - 1, onUpdateItems)
-    quickSort(list, pivotIndex + 1, end, onUpdateItems)
+    val pivotIndex = partitionQuick(list, start, end,comparing, onUpdateItems)
+    quickSort(list, start, pivotIndex - 1,comparing, onUpdateItems)
+    quickSort(list, pivotIndex + 1, end, comparing = comparing, onUpdateItems)
 
-    delay(10)
+    delay(100)
     onUpdateItems(list)
 }
 
@@ -52,6 +57,8 @@ suspend fun partitionQuick(
     list: MutableList<Int>,
     start: Int,
     end: Int,
+    comparing:(Int,Int)->Unit,
+
     onUpdateItems: (MutableList<Int>) -> Unit
 ): Int {
     var pivotIndex = start
@@ -63,11 +70,11 @@ suspend fun partitionQuick(
             val temp = list[i]
             list[i] = list[pivotIndex]
             list[pivotIndex] = temp
-
+            comparing(i,pivotIndex)
             ++pivotIndex
         }
 
-        delay(1)
+        delay(100)
         onUpdateItems(list)
     }
 
@@ -81,7 +88,10 @@ suspend fun partitionQuick(
     return pivotIndex
 }
 suspend fun selectionSort(
+
     list: MutableList<Int>,
+    comparing:(Int,Int)->Unit,
+
     onUpdateItems: (MutableList<Int>) -> Unit
 ) {
     val n = list.size
@@ -98,14 +108,17 @@ suspend fun selectionSort(
         val temp = list[i]
         list[i] = list[indexMin]
         list[indexMin] = temp
+        comparing(i,indexMin)
 
-        delay(10)
+        delay(100)
         onUpdateItems(list)
     }
 }
 
 suspend fun insertionSort(
     list: MutableList<Int>,
+    comparing:(Int,Int)->Unit,
+
     onUpdateItems: (MutableList<Int>) -> Unit
 ) {
     val n = list.size
@@ -116,9 +129,10 @@ suspend fun insertionSort(
 
         while (hole > 0 && list[hole - 1] > value) {
             list[hole] = list[hole - 1]
+            comparing(hole,hole-1)
             --hole
         }
-        delay(10)
+        delay(100)
         list[hole] = value
         onUpdateItems(list)
     }
@@ -127,6 +141,8 @@ suspend fun mergeSort(
     list: MutableList<Int>,
     temp: MutableList<Int>,
     leftStart: Int,
+    comparing:(Int,Int)->Unit,
+
     rightEnd: Int,
     onUpdateItems: (MutableList<Int>) -> Unit
 ) {
@@ -136,16 +152,18 @@ suspend fun mergeSort(
 
     val mid = (leftStart + rightEnd) / 2
 
-    mergeSort(list, temp, leftStart, mid, onUpdateItems)
-    mergeSort(list, temp, mid + 1, rightEnd, onUpdateItems)
-    merge(list, temp, leftStart, rightEnd, onUpdateItems)
-    delay(10)
+    mergeSort(list, temp, leftStart,comparing, rightEnd, onUpdateItems)
+    mergeSort(list, temp, mid + 1, comparing ,rightEnd, onUpdateItems)
+    merge(list, temp,comparing, leftStart, rightEnd, onUpdateItems)
+    delay(100)
     onUpdateItems(list)
 }
 
 suspend fun merge(
     list: MutableList<Int>,
     temp: MutableList<Int>,
+    comparing:(Int,Int)->Unit,
+
     leftStart: Int,
     rightEnd: Int,
     onUpdateItems: (MutableList<Int>) -> Unit
@@ -159,12 +177,15 @@ suspend fun merge(
     var index = leftStart
 
     while (left <= leftEnd && right <= rightEnd) {
+
         if (list[left] <= list[right]) {
             temp[index] = list[left]
             left++
+            comparing(index,left)
         } else {
             temp[index] = list[right]
             right++
+            comparing(index,right)
         }
         index++
     }
@@ -184,8 +205,7 @@ suspend fun merge(
     for (i in 0 until size) {
         list[leftStart + i] = temp[leftStart + i]
     }
-
-    delay(20)
+    delay(100)
     onUpdateItems(list)
 }
 
